@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchLessons } from '../api'
+import { fetchLessons } from '../lessons.service'
 import { lessons as mockLessons } from '../mockData'
 import { getDemoLessons } from '../localDemoStore'
 import type { Lesson } from '../types'

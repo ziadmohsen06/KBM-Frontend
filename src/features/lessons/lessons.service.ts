@@ -1,5 +1,5 @@
 import { apiRequest } from '../../shared/api/client'
-import { getDepartments, getFunctions, getIndustries } from '../../shared/api/catalog'
+import { getDepartments, getFunctions, getIndustries } from '../../shared/api/catalog.service'
 import type { CreateLessonDto, DepartmentDto, FunctionDto, IndustryDto, LessonDto } from '../../shared/api/types'
 import type { CategoryColor, Lesson } from './types'
 

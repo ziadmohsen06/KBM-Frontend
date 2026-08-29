@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { getStoredAuth, setStoredAuth } from '../api/client'
-import * as authApi from '../api/auth'
+import * as authApi from '../api/auth.service'
 import type { AuthResponseDto } from '../api/types'
 
 interface AuthContextValue {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchCatalog, type Catalog } from '../api'
+import { fetchCatalog, type Catalog } from '../lessons.service'
 import { departments as mockDepartments, functions as mockFunctions, industries as mockIndustries } from '../mockData'
 
 const fallbackCatalog: Catalog = {
