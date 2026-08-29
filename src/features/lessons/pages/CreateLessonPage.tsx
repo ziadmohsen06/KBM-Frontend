@@ -1,21 +1,65 @@
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { FileText, Bold, Italic, Underline, List, Link2 } from 'lucide-react'
 import Breadcrumb from '../../../shared/components/Breadcrumb'
 import Button from '../../../shared/components/Button'
 import Input from '../../../shared/components/Input'
 import Select from '../../../shared/components/Select'
+import FallbackBanner from '../../../shared/components/FallbackBanner'
 import NumberedSection from '../components/NumberedSection'
 import UploadDropzone from '../components/UploadDropzone'
 import ReviewSummary from '../components/ReviewSummary'
-import { industries } from '../mockData'
+import { useCatalog } from '../hooks/useCatalog'
+import { useAuth } from '../../../shared/auth/AuthContext'
+import { createLesson } from '../api'
+import { ApiError } from '../../../shared/api/client'
 
 const toolbarIcons = [Bold, Italic, Underline, List, Link2]
 
 export default function CreateLessonPage() {
+  const { catalog, isFallback } = useCatalog()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
   const [title, setTitle] = useState('')
   const [projectName, setProjectName] = useState('')
-  const [industry, setIndustry] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+  const [functionId, setFunctionId] = useState('')
+  const [industryId, setIndustryId] = useState('')
+  const [valueProposition, setValueProposition] = useState('')
   const [description, setDescription] = useState('')
+  const [personToContact, setPersonToContact] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const departmentName = catalog.departments.find((d) => d.id === departmentId)?.name ?? ''
+  const industryName = catalog.industries.find((i) => i.id === industryId)?.name ?? ''
+
+  const canSubmit =
+    !isFallback && user && title && projectName && departmentId && functionId && industryId && description && personToContact
+
+  async function handleSubmit() {
+    if (!canSubmit) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const created = await createLesson({
+        title,
+        projectName,
+        departmentId,
+        functionId,
+        industryId,
+        valueProposition,
+        description,
+        personToContact,
+      })
+      navigate(`/lessons/${created.id}`)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to submit the lesson. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -32,6 +76,22 @@ export default function CreateLessonPage() {
           </p>
         </div>
       </div>
+
+      {isFallback && (
+        <div className="mt-6">
+          <FallbackBanner />
+        </div>
+      )}
+
+      {!isFallback && !user && (
+        <div className="mt-6 rounded-lg border border-accent/30 bg-accent/10 px-4 py-2.5 text-sm text-text-primary">
+          You need to{' '}
+          <Link to="/login" className="font-medium text-accent hover:underline">
+            log in
+          </Link>{' '}
+          before you can submit a lesson.
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
@@ -51,37 +111,67 @@ export default function CreateLessonPage() {
                   onChange={(e) => setProjectName(e.target.value)}
                 />
               </div>
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <Select
+                  label="Department *"
+                  placeholder="Select Department"
+                  idOptions={catalog.departments}
+                  value={departmentId}
+                  onChange={(e) => setDepartmentId(e.target.value)}
+                />
+                <Select
+                  label="Function *"
+                  placeholder="Select Function"
+                  idOptions={catalog.functions}
+                  value={functionId}
+                  onChange={(e) => setFunctionId(e.target.value)}
+                />
+              </div>
               <Select
                 label="Industry *"
                 placeholder="Select Industry"
-                options={industries}
-                value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
+                idOptions={catalog.industries}
+                value={industryId}
+                onChange={(e) => setIndustryId(e.target.value)}
+              />
+              <Input
+                label="Person to Contact *"
+                placeholder="e.g. Hossam Shaaban"
+                value={personToContact}
+                onChange={(e) => setPersonToContact(e.target.value)}
               />
             </div>
           </NumberedSection>
 
           <NumberedSection number={2} title="Lesson Content">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-text-primary">Description *</span>
-              <div className="flex items-center gap-3 rounded-t-lg border border-b-0 border-border bg-bg-card-alt px-3 py-2">
-                {toolbarIcons.map((Icon, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className="text-text-muted transition-colors hover:text-accent cursor-pointer"
-                  >
-                    <Icon size={15} />
-                  </button>
-                ))}
-              </div>
-              <textarea
-                rows={8}
-                placeholder="Write the full description of the lesson..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full resize-none rounded-b-lg border border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-accent"
+            <div className="flex flex-col gap-4">
+              <Input
+                label="Value Proposition *"
+                placeholder="One-sentence summary of the impact"
+                value={valueProposition}
+                onChange={(e) => setValueProposition(e.target.value)}
               />
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-text-primary">Description *</span>
+                <div className="flex items-center gap-3 rounded-t-lg border border-b-0 border-border bg-bg-card-alt px-3 py-2">
+                  {toolbarIcons.map((Icon, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className="text-text-muted transition-colors hover:text-accent cursor-pointer"
+                    >
+                      <Icon size={15} />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  rows={8}
+                  placeholder="Write the full description of the lesson..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full resize-none rounded-b-lg border border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-accent"
+                />
+              </div>
             </div>
           </NumberedSection>
 
@@ -103,11 +193,15 @@ export default function CreateLessonPage() {
             </div>
           </NumberedSection>
 
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
           <div className="flex flex-col-reverse items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <Button variant="danger-outline">Discard</Button>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button variant="secondary">Save as Draft</Button>
-              <Button variant="primary">Submit Lesson &rarr;</Button>
+              <Button variant="primary" disabled={!canSubmit || submitting} onClick={handleSubmit}>
+                {submitting ? 'Submitting...' : <>Submit Lesson &rarr;</>}
+              </Button>
             </div>
           </div>
         </div>
@@ -116,8 +210,8 @@ export default function CreateLessonPage() {
           <ReviewSummary
             title={title}
             projectName={projectName}
-            industry={industry}
-            section=""
+            industry={industryName}
+            section={departmentName}
             description={description}
             fileCount={0}
             status="Not provided"

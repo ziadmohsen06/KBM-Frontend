@@ -3,10 +3,11 @@ import type { SelectHTMLAttributes } from 'react'
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
   placeholder?: string
-  options: string[]
+  options?: string[]
+  idOptions?: { id: string; name: string }[]
 }
 
-export default function Select({ label, placeholder, options, className = '', id, ...rest }: SelectProps) {
+export default function Select({ label, placeholder, options, idOptions, className = '', id, ...rest }: SelectProps) {
   return (
     <label className="flex w-full flex-col gap-1.5" htmlFor={id}>
       {label && <span className="text-sm font-medium text-text-primary">{label}</span>}
@@ -21,11 +22,17 @@ export default function Select({ label, placeholder, options, className = '', id
             {placeholder}
           </option>
         )}
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
+        {idOptions
+          ? idOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+              </option>
+            ))
+          : options?.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
       </select>
     </label>
   )

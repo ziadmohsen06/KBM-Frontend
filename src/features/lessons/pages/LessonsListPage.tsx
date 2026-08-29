@@ -1,16 +1,33 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import Breadcrumb from '../../../shared/components/Breadcrumb'
 import Button from '../../../shared/components/Button'
+import FallbackBanner from '../../../shared/components/FallbackBanner'
 import LessonFilters from '../components/LessonFilters'
 import LessonGrid from '../components/LessonGrid'
 import LessonGroupedList from '../components/LessonGroupedList'
 import Pagination from '../components/Pagination'
-import { lessons } from '../mockData'
+import { useLessons } from '../hooks/useLessons'
+import { useCatalog } from '../hooks/useCatalog'
 
 export default function LessonsListPage() {
+  const { lessons, loading, isFallback } = useLessons()
+  const { catalog } = useCatalog()
   const [groupByDepartment, setGroupByDepartment] = useState(false)
+  const [search, setSearch] = useState('')
+  const [department, setDepartment] = useState('')
+
+  const departmentNames = useMemo(() => catalog.departments.map((d) => d.name), [catalog])
+  const functionNames = useMemo(() => catalog.functions.map((f) => f.name), [catalog])
+
+  const filteredLessons = useMemo(() => {
+    return lessons.filter((lesson) => {
+      const matchesSearch = lesson.title.toLowerCase().includes(search.toLowerCase())
+      const matchesDepartment = !department || lesson.department === department
+      return matchesSearch && matchesDepartment
+    })
+  }, [lessons, search, department])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -31,19 +48,35 @@ export default function LessonsListPage() {
         </Link>
       </div>
 
+      {isFallback && (
+        <div className="mt-6">
+          <FallbackBanner />
+        </div>
+      )}
+
       <div className="mt-8">
         <LessonFilters
+          departments={departmentNames}
+          keywords={functionNames}
+          search={search}
+          onSearchChange={setSearch}
+          department={department}
+          onDepartmentChange={setDepartment}
           groupByDepartment={groupByDepartment}
           onToggleGroup={() => setGroupByDepartment((v) => !v)}
         />
       </div>
 
       <div className="mt-8">
-        {groupByDepartment ? (
-          <LessonGroupedList lessons={lessons} />
+        {loading ? (
+          <p className="py-12 text-center text-text-muted">Loading lessons...</p>
+        ) : filteredLessons.length === 0 ? (
+          <p className="py-12 text-center text-text-muted">No lessons match your filters.</p>
+        ) : groupByDepartment ? (
+          <LessonGroupedList lessons={filteredLessons} />
         ) : (
           <>
-            <LessonGrid lessons={lessons} />
+            <LessonGrid lessons={filteredLessons} />
             <div className="mt-8">
               <Pagination />
             </div>

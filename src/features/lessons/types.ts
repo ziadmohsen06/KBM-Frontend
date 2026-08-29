@@ -23,8 +23,9 @@ export interface Lesson {
   authorName: string
   authorInitials: string
   authorAvatarColor: 'orange' | 'green' | 'blue' | 'purple'
-  rating: number
-  reviewCount: number
+  /** Undefined for lessons sourced from the live API, which has no rating system. */
+  rating?: number
+  reviewCount?: number
   valueProposition: string
   description: string
   personToContact: string

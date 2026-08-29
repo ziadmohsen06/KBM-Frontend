@@ -1,7 +1,12 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Search, Bell, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../theme/ThemeContext'
+import { useAuth } from '../auth/AuthContext'
 import Avatar from './Avatar'
+
+function initialsFromEmail(email: string) {
+  return email.slice(0, 2).toUpperCase()
+}
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -12,6 +17,8 @@ const navLinks = [
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg-page/90 backdrop-blur">
@@ -58,7 +65,14 @@ export default function Navbar() {
           >
             {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
           </button>
-          <Avatar initials="ZM" color="blue" size="sm" />
+          <button
+            aria-label={user ? `Log out (${user.email})` : 'Log in'}
+            title={user ? `Log out (${user.email})` : 'Log in'}
+            onClick={() => (user ? logout() : navigate('/login'))}
+            className="cursor-pointer"
+          >
+            <Avatar initials={user ? initialsFromEmail(user.email) : '?'} color="blue" size="sm" />
+          </button>
         </div>
       </div>
     </header>

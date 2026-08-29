@@ -42,7 +42,11 @@ export default function LessonCard({ lesson }: { lesson: Lesson }) {
           <span>{lesson.authorName}</span>
         </div>
 
-        <StarRating rating={lesson.rating} reviewCount={lesson.reviewCount} />
+        {lesson.rating !== undefined ? (
+          <StarRating rating={lesson.rating} reviewCount={lesson.reviewCount} />
+        ) : (
+          <span className="text-sm text-text-muted">No reviews yet</span>
+        )}
 
         <Link
           to={`/lessons/${lesson.id}`}
