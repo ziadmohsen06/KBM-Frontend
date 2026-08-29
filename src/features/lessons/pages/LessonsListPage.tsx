@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 import Breadcrumb from '../../../shared/components/Breadcrumb'
 import Button from '../../../shared/components/Button'
 import FallbackBanner from '../../../shared/components/FallbackBanner'
-import LessonFilters from '../components/LessonFilters'
+import LessonFilters, { type LessonFilterValues } from '../components/LessonFilters'
 import LessonGrid from '../components/LessonGrid'
 import LessonGroupedList from '../components/LessonGroupedList'
 import Pagination from '../components/Pagination'
@@ -17,8 +17,7 @@ export default function LessonsListPage() {
   const { lessons, loading, isFallback } = useLessons()
   const { catalog } = useCatalog()
   const [groupByDepartment, setGroupByDepartment] = useState(false)
-  const [search, setSearch] = useState('')
-  const [department, setDepartment] = useState('')
+  const [filters, setFilters] = useState<LessonFilterValues>({ search: '', department: '', keyword: '' })
   const [page, setPage] = useState(1)
 
   const departmentNames = useMemo(() => catalog.departments.map((d) => d.name), [catalog])
@@ -26,11 +25,12 @@ export default function LessonsListPage() {
 
   const filteredLessons = useMemo(() => {
     return lessons.filter((lesson) => {
-      const matchesSearch = lesson.title.toLowerCase().includes(search.toLowerCase())
-      const matchesDepartment = !department || lesson.department === department
-      return matchesSearch && matchesDepartment
+      const matchesSearch = lesson.title.toLowerCase().includes(filters.search.toLowerCase())
+      const matchesDepartment = !filters.department || lesson.department === filters.department
+      const matchesKeyword = !filters.keyword || lesson.functionName === filters.keyword
+      return matchesSearch && matchesDepartment && matchesKeyword
     })
-  }, [lessons, search, department])
+  }, [lessons, filters])
 
   const totalPages = Math.max(1, Math.ceil(filteredLessons.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -38,7 +38,7 @@ export default function LessonsListPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [search, department, groupByDepartment])
+  }, [filters, groupByDepartment])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -69,10 +69,7 @@ export default function LessonsListPage() {
         <LessonFilters
           departments={departmentNames}
           keywords={functionNames}
-          search={search}
-          onSearchChange={setSearch}
-          department={department}
-          onDepartmentChange={setDepartment}
+          onApply={setFilters}
           groupByDepartment={groupByDepartment}
           onToggleGroup={() => setGroupByDepartment((v) => !v)}
         />

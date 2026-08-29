@@ -3,11 +3,22 @@ import type { SelectHTMLAttributes } from 'react'
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
   placeholder?: string
+  /** Renders the placeholder as a real, selectable "clear" option (value "") instead of a disabled hint. */
+  clearable?: boolean
   options?: string[]
   idOptions?: { id: string; name: string }[]
 }
 
-export default function Select({ label, placeholder, options, idOptions, className = '', id, ...rest }: SelectProps) {
+export default function Select({
+  label,
+  placeholder,
+  clearable = false,
+  options,
+  idOptions,
+  className = '',
+  id,
+  ...rest
+}: SelectProps) {
   return (
     <label className="flex w-full flex-col gap-1.5" htmlFor={id}>
       {label && <span className="text-sm font-medium text-text-primary">{label}</span>}
@@ -18,7 +29,7 @@ export default function Select({ label, placeholder, options, idOptions, classNa
         {...rest}
       >
         {placeholder && (
-          <option value="" disabled>
+          <option value="" disabled={!clearable}>
             {placeholder}
           </option>
         )}

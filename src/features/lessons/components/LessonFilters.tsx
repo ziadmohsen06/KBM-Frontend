@@ -1,27 +1,32 @@
+import { useState } from 'react'
 import { Search, Settings2 } from 'lucide-react'
 import Input from '../../../shared/components/Input'
 import Select from '../../../shared/components/Select'
 import Button from '../../../shared/components/Button'
 
+export interface LessonFilterValues {
+  search: string
+  department: string
+  keyword: string
+}
+
 export default function LessonFilters({
   departments,
   keywords,
-  search,
-  onSearchChange,
-  department,
-  onDepartmentChange,
+  onApply,
   groupByDepartment,
   onToggleGroup,
 }: {
   departments: string[]
   keywords: string[]
-  search: string
-  onSearchChange: (value: string) => void
-  department: string
-  onDepartmentChange: (value: string) => void
+  onApply: (values: LessonFilterValues) => void
   groupByDepartment: boolean
   onToggleGroup: () => void
 }) {
+  const [search, setSearch] = useState('')
+  const [department, setDepartment] = useState('')
+  const [keyword, setKeyword] = useState('')
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
@@ -30,21 +35,29 @@ export default function LessonFilters({
             placeholder="Search for a lesson..."
             icon={<Search size={16} />}
             value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && onApply({ search, department, keyword })}
           />
         </div>
         <div className="w-full md:w-48">
           <Select
-            placeholder="Department"
+            placeholder="All Departments"
+            clearable
             options={departments}
             value={department}
-            onChange={(e) => onDepartmentChange(e.target.value)}
+            onChange={(e) => setDepartment(e.target.value)}
           />
         </div>
         <div className="w-full md:w-48">
-          <Select placeholder="Keywords" options={keywords} />
+          <Select
+            placeholder="All Keywords"
+            clearable
+            options={keywords}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
         </div>
-        <Button variant="primary" className="w-full md:w-auto">
+        <Button variant="primary" className="w-full md:w-auto" onClick={() => onApply({ search, department, keyword })}>
           Apply
         </Button>
       </div>
