@@ -1,6 +1,6 @@
 import type { AuthResponseDto } from './types'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5081/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:7119/api/v1'
 const TOKEN_STORAGE_KEY = 'kbm-auth'
 
 export class ApiError extends Error {

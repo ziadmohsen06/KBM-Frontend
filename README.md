@@ -31,7 +31,9 @@ npm install
 npm run dev
 ```
 
-By default the app tries to reach the API at `http://localhost:5081/api/v1` (the backend's default dev port) and silently falls back to the bundled mock data — with a small "Could not reach the KBM API" banner — if it can't connect. Copy `.env.example` to `.env` to point at a different backend URL.
+By default the app tries to reach the API at `https://localhost:7119/api/v1` (the backend's HTTPS dev port) and silently falls back to the bundled mock data — with a small "Could not reach the KBM API" banner — if it can't connect. Copy `.env.example` to `.env` to point at a different backend URL.
+
+**Use the HTTPS port (7119), not HTTP (5081).** The backend has `app.UseHttpsRedirection()`, which 307-redirects every HTTP request to HTTPS. A browser's CORS preflight (the automatic `OPTIONS` request sent ahead of most real requests) is not allowed to follow redirects, so pointing at port 5081 fails with a CORS error before the request even reaches the CORS policy — it looks like a CORS misconfiguration but is really just the wrong port. Since 7119 serves a self-signed local dev certificate, the first time the frontend calls it your browser may need you to visit `https://localhost:7119` directly once and accept the certificate warning before requests from the frontend will go through.
 
 ## Connecting to KBM-Backend
 
@@ -41,13 +43,13 @@ By default the app tries to reach the API at `http://localhost:5081/api/v1` (the
    ```csharp
    builder.Services.AddCors(options =>
        options.AddDefaultPolicy(policy =>
-           policy.WithOrigins("http://localhost:5183").AllowAnyHeader().AllowAnyMethod()));
+           policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
    // ...
    app.UseCors();
    ```
 
-   This wasn't added here since the task instructions were not to modify the backend repo.
-3. Set `VITE_API_BASE_URL` in `.env` if the backend isn't running on the default `http://localhost:5081/api/v1`.
+   Adjust the origin if your Vite dev server runs on a different port. This wasn't added here since the task instructions were not to modify the backend repo.
+3. Set `VITE_API_BASE_URL` in `.env` if the backend isn't running on the default `https://localhost:7119/api/v1`.
 
 ### Known gaps between the UI and the current API
 
