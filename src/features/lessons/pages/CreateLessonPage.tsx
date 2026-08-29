@@ -11,8 +11,10 @@ import UploadDropzone from '../components/UploadDropzone'
 import ReviewSummary from '../components/ReviewSummary'
 import { useCatalog } from '../hooks/useCatalog'
 import { useAuth } from '../../../shared/auth/AuthContext'
-import { createLesson } from '../api'
+import { createLesson, toLesson } from '../api'
+import { addDemoLesson } from '../localDemoStore'
 import { ApiError } from '../../../shared/api/client'
+import type { LessonDto } from '../../../shared/api/types'
 
 const toolbarIcons = [Bold, Italic, Underline, List, Link2]
 
@@ -35,13 +37,41 @@ export default function CreateLessonPage() {
   const departmentName = catalog.departments.find((d) => d.id === departmentId)?.name ?? ''
   const industryName = catalog.industries.find((i) => i.id === industryId)?.name ?? ''
 
-  const canSubmit =
-    !isFallback && user && title && projectName && departmentId && functionId && industryId && description && personToContact
+  const requiredFieldsFilled =
+    title && projectName && departmentId && functionId && industryId && description && personToContact
+  const canSubmit = Boolean(requiredFieldsFilled && (isFallback || user))
+
+  function saveAsDemoLesson() {
+    const demoDto: LessonDto = {
+      id: `demo-${Date.now()}`,
+      title,
+      projectName,
+      departmentId,
+      functionId,
+      industryId,
+      valueProposition,
+      description,
+      imageUrl: null,
+      personToContact,
+      createdDate: new Date().toISOString(),
+      modifiedDate: new Date().toISOString(),
+    }
+    const demoLesson = toLesson(demoDto, catalog)
+    addDemoLesson(demoLesson)
+    navigate(`/lessons/${demoDto.id}`)
+  }
 
   async function handleSubmit() {
     if (!canSubmit) return
     setSubmitting(true)
     setError('')
+
+    if (isFallback) {
+      saveAsDemoLesson()
+      setSubmitting(false)
+      return
+    }
+
     try {
       const created = await createLesson({
         title,
@@ -78,8 +108,12 @@ export default function CreateLessonPage() {
       </div>
 
       {isFallback && (
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-2">
           <FallbackBanner />
+          <p className="text-xs text-text-muted">
+            The API is unreachable, so submitting will save this lesson locally in your browser (demo mode) instead
+            of sending it to the backend.
+          </p>
         </div>
       )}
 
@@ -200,7 +234,7 @@ export default function CreateLessonPage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button variant="secondary">Save as Draft</Button>
               <Button variant="primary" disabled={!canSubmit || submitting} onClick={handleSubmit}>
-                {submitting ? 'Submitting...' : <>Submit Lesson &rarr;</>}
+                {submitting ? 'Submitting...' : isFallback ? <>Save Locally &rarr;</> : <>Submit Lesson &rarr;</>}
               </Button>
             </div>
           </div>

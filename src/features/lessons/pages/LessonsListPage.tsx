@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import Breadcrumb from '../../../shared/components/Breadcrumb'
@@ -11,12 +11,15 @@ import Pagination from '../components/Pagination'
 import { useLessons } from '../hooks/useLessons'
 import { useCatalog } from '../hooks/useCatalog'
 
+const PAGE_SIZE = 6
+
 export default function LessonsListPage() {
   const { lessons, loading, isFallback } = useLessons()
   const { catalog } = useCatalog()
   const [groupByDepartment, setGroupByDepartment] = useState(false)
   const [search, setSearch] = useState('')
   const [department, setDepartment] = useState('')
+  const [page, setPage] = useState(1)
 
   const departmentNames = useMemo(() => catalog.departments.map((d) => d.name), [catalog])
   const functionNames = useMemo(() => catalog.functions.map((f) => f.name), [catalog])
@@ -28,6 +31,14 @@ export default function LessonsListPage() {
       return matchesSearch && matchesDepartment
     })
   }, [lessons, search, department])
+
+  const totalPages = Math.max(1, Math.ceil(filteredLessons.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageLessons = filteredLessons.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  useEffect(() => {
+    setPage(1)
+  }, [search, department, groupByDepartment])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -76,10 +87,12 @@ export default function LessonsListPage() {
           <LessonGroupedList lessons={filteredLessons} />
         ) : (
           <>
-            <LessonGrid lessons={filteredLessons} />
-            <div className="mt-8">
-              <Pagination />
-            </div>
+            <LessonGrid lessons={pageLessons} />
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+              </div>
+            )}
           </>
         )}
       </div>

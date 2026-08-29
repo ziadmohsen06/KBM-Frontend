@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchLessons } from '../api'
 import { lessons as mockLessons } from '../mockData'
+import { getDemoLessons } from '../localDemoStore'
 import type { Lesson } from '../types'
 
 export function useLessons() {
@@ -20,7 +21,7 @@ export function useLessons() {
       })
       .catch(() => {
         if (!cancelled) {
-          setLessons(mockLessons)
+          setLessons([...getDemoLessons(), ...mockLessons])
           setIsFallback(true)
         }
       })

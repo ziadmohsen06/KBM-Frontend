@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchCatalog, type Catalog } from '../api'
-import { departments as mockDepartments, industries as mockIndustries } from '../mockData'
+import { departments as mockDepartments, functions as mockFunctions, industries as mockIndustries } from '../mockData'
 
 const fallbackCatalog: Catalog = {
   departments: mockDepartments.map((name, i) => ({
@@ -9,7 +9,12 @@ const fallbackCatalog: Catalog = {
     createdDate: '',
     modifiedDate: '',
   })),
-  functions: [],
+  functions: mockFunctions.map((name, i) => ({
+    id: `mock-function-${i}`,
+    name,
+    createdDate: '',
+    lastModifiedDate: '',
+  })),
   industries: mockIndustries.map((name, i) => ({
     id: `mock-industry-${i}`,
     name,

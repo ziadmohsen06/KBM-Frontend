@@ -76,6 +76,7 @@ export const lessons: Lesson[] = [
 ]
 
 export const departments = ['Automation', 'Quality Assurance', 'Software Engineering', 'Electrical']
+export const functions = ['Controls Engineering', 'Electrical Engineering', 'UX Engineering']
 export const keywordsList = ['Automation', 'PLC', 'Packaging', 'Electrical', 'Standards', 'Wiring', 'UX', 'HMI']
 export const industries = [
   'Consumer Goods',

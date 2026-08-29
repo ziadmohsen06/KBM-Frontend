@@ -1,5 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { Search, Bell, Sun, Moon } from 'lucide-react'
+import { NavLink, Link } from 'react-router-dom'
+import { Search, Bell, Sun, Moon, LogOut } from 'lucide-react'
 import { useTheme } from '../theme/ThemeContext'
 import { useAuth } from '../auth/AuthContext'
 import Avatar from './Avatar'
@@ -18,7 +18,6 @@ const navLinks = [
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg-page/90 backdrop-blur">
@@ -65,14 +64,26 @@ export default function Navbar() {
           >
             {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
           </button>
-          <button
-            aria-label={user ? `Log out (${user.email})` : 'Log in'}
-            title={user ? `Log out (${user.email})` : 'Log in'}
-            onClick={() => (user ? logout() : navigate('/login'))}
-            className="cursor-pointer"
-          >
-            <Avatar initials={user ? initialsFromEmail(user.email) : '?'} color="blue" size="sm" />
-          </button>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Avatar initials={initialsFromEmail(user.email)} color="blue" size="sm" />
+              <button
+                aria-label="Log out"
+                title={`Log out (${user.email})`}
+                onClick={logout}
+                className="text-text-muted transition-colors hover:text-text-primary cursor-pointer"
+              >
+                <LogOut size={17} />
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            >
+              Log In
+            </Link>
+          )}
         </div>
       </div>
     </header>

@@ -1,16 +1,36 @@
-import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-export default function Pagination() {
-  const [page, setPage] = useState(1)
-  const pages = [1, 2, 3, '...', 12]
+function buildPageList(current: number, total: number): (number | '...')[] {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages = new Set([1, 2, total - 1, total, current - 1, current, current + 1])
+  const sorted = [...pages].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b)
+
+  const result: (number | '...')[] = []
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - (sorted[i - 1] as number) > 1) result.push('...')
+    result.push(p)
+  })
+  return result
+}
+
+export default function Pagination({
+  page,
+  totalPages,
+  onPageChange,
+}: {
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}) {
+  const pages = buildPageList(page, totalPages)
 
   return (
     <div className="flex items-center justify-center gap-1.5">
       <button
         aria-label="Previous page"
-        onClick={() => setPage((p) => Math.max(1, p - 1))}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:border-accent hover:text-accent cursor-pointer"
+        disabled={page === 1}
+        onClick={() => onPageChange(Math.max(1, page - 1))}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-40 disabled:hover:border-border disabled:hover:text-text-muted cursor-pointer disabled:cursor-not-allowed"
       >
         <ChevronLeft size={15} />
       </button>
@@ -22,7 +42,7 @@ export default function Pagination() {
         ) : (
           <button
             key={p}
-            onClick={() => setPage(p as number)}
+            onClick={() => onPageChange(p)}
             className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium transition-colors cursor-pointer ${
               page === p
                 ? 'bg-accent text-white'
@@ -35,8 +55,9 @@ export default function Pagination() {
       )}
       <button
         aria-label="Next page"
-        onClick={() => setPage((p) => Math.min(12, p + 1))}
-        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:border-accent hover:text-accent cursor-pointer"
+        disabled={page === totalPages}
+        onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-40 disabled:hover:border-border disabled:hover:text-text-muted cursor-pointer disabled:cursor-not-allowed"
       >
         <ChevronRight size={15} />
       </button>
